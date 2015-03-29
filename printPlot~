@@ -1,0 +1,9 @@
+set xlabel 'steps'
+set ylabel 'likelihood'
+
+plot 'Toffoli' with lines
+set key right bottom
+set terminal pdf enhanced monochrome
+set output "2goodOne_XX_ZZ_X_Z_5spins.pdf"
+replot
+
