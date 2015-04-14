@@ -1,0 +1,10 @@
+\documentclass{report}
+\usepackage{tikz,calc}
+
+\begin{document}
+\begin{tikzpicture}
+\foreach \a in {1,2,...,5}{
+\draw (\a*360/5: 4cm) node{angle \a};
+}
+\end{tikzpicture}
+\end{document}
