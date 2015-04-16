@@ -3,8 +3,10 @@
 
 \begin{document}
 \begin{tikzpicture}
+
+
 \foreach \a in {1,2,...,5}{
-\draw (\a*360/5: 4cm) node{angle \a};
+\draw (\a*360/5: 7cm) node (\a) {qubit \a};
 }
 \end{tikzpicture}
 \end{document}
