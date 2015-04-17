@@ -1,0 +1,40 @@
+set terminal postscript eps color enhanced
+set output 'CCZ.eps'
+
+#set ytics 0.25
+#set format y "%.2f"
+
+set multiplot
+
+
+# Bigger plot options
+set size 1,1
+set title 'optimization'
+set xlabel 'steps'
+set ylabel 'likelihoood'
+
+
+### This is to plot the square. You can skip this ###
+#set arrow from 1.1,-0.9 to 1.0,0.3 lw 1 back filled
+#set arrow from 0.9,-3 to 1.5,-3 lw 1 front nohead
+#set arrow from 0.9,-1 to 1.5,-1 lw 1 front nohead
+#set arrow from 0.9,-1 to 0.9,-3 lw 1 front nohead
+#set arrow from 1.5,-1 to 1.5,-3 lw 1 front nohead
+###################################
+
+# This plots the big plot
+plot 'papero_ccz' w l lt 1 lc 3 lw 3 t ''
+
+# Now we set the options for the smaller plot
+set size 0.6,0.4
+set origin 0.2,0.2
+set title ''
+set xlabel ""
+set ylabel "Fidelity"
+unset arrow
+
+# And finally let's plot the same set of data, but in the smaller plot
+plot 'papero_nonStoc_CCZ' using ($1):(-$2) with lines  lt 1 lc 3 lw 3 t '' 
+
+# It's important to close the multiplot environment!!!
+unset multiplot

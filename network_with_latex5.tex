@@ -39,21 +39,6 @@
 
 %----------INNER LINKS-------------%
 
-\begin{comment}
-
-\foreach \i in {1,...,5}{
-\foreach \j in {1,...,\i}{
-\ifthenelse{\NOT \j = \i}{
-	\draw[-] 
-	  (\i) to[bend left = 15] node[sloped, below] {\scriptsize XX = 0.9} (\j); 
-	
-	\draw[-] 
-	  (\i) to[bend right = 15] node[sloped, above] {\scriptsize ZZ = 0.9} (\j); 
-};};};
-
-\end{comment}
-
-
 \draw[-]
 (2) to [bend left = 12] node[sloped, below] {\scriptsize XX =0.032} (1);
 \draw[-]

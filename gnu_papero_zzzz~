@@ -1,0 +1,8 @@
+set xlabel 'steps'
+set ylabel 'Likelihood'
+set title 'Optimiziation'
+p 'papero_ZZZZ' with line title 'GD Chain 3 spins'
+set key right bottom
+set terminal pdf enhanced
+set output "ZZZZ.pdf"
+replot
