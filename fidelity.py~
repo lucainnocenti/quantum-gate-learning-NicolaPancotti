@@ -1,0 +1,86 @@
+from qutip import *
+from math import log,cos,sin
+from numpy import *
+
+def getGate (G): #extract non zero elements of the gate and save them in s
+    
+    s = []
+
+    rows = G.shape[0]
+    colums = G.shape[1]
+    
+    for i in range(rows):
+        for j in range(colums):
+            if G[i][0][j] != 0 :
+                s.append([i,j])
+    return s
+
+def get_bin(a):  #binary representation of a number a: useful to write the computational basis 
+    
+    s = bin(a)[2:]
+    l = len(s)
+    if l < 4 :
+        r = '0'*(4-l)
+        s = r + s
+        
+    return s
+
+def getBasis (a) : #get the basis states according to the binary of a: 10 -> |10>
+    
+    if a == 0:
+          B = [basis(2,0)]*(CareStateDim)
+          return tensor(B)
+    
+    c = get_bin(a)
+    if dimG == 16:
+        return tensor(basis(2,int(c[0])) , basis(2,int(c[1])), basis(2,int(c[2])), basis(2,int(c[3])))
+    if dimG == 8:
+        return tensor(basis(2,int(c[0])) , basis(2,int(c[1])), basis(2,int(c[2])))
+    if dimG == 4:
+        return tensor(basis(2,int(c[1])) , basis(2,int(c[2])))
+    
+def fid (J, G, H):  #Fidelity function
+    
+    N=5
+    j = complex(0,1)
+    dimG = G.shape[0] 
+    CareStateDim = int(log(dimG,2))	
+    s = getGate(G)
+    #H = HamiltonianAB(J)
+    Fid = 1/(dimG + 1)
+    U = (-j*H).expm()
+    Udag = (j*H).expm()
+
+    h = N-CareStateDim
+    if h > 1 :
+        dontCareStates = [sin(0.847)*basis(2,1) + cos(0.847)*basis(2,0)]*(h)
+        dontCareIdentity = [qeye(2)]*(h)
+    else :
+        dontCareStates = [sin(0.847)*basis(2,1) + cos(0.847)*basis(2,0)]
+        dontCareIdentity = [qeye(2)]
+
+
+    dCS = tensor(dontCareStates)
+    dCI = tensor(dontCareIdentity)
+    
+    for x in s :
+        for y in s:
+            
+            #definition of the basis kets and bras.             
+            bra_i = getBasis(x[0]).dag()
+            ket_j = getBasis(y[0])
+            ket_k = getBasis(x[1])
+            bra_l = getBasis(y[1]).dag()
+            
+            Epsilon = U*tensor(ket_k*bra_l, dCS*dCS.dag())*Udag
+            Eps_ijkl = bra_i*(Epsilon.ptrace([0,1,2]))*ket_j
+            
+            Gstar_ik = G[x[0],x[1]].conjugate()
+            G_jl = G[y[0],y[1]]
+            
+            
+            fidStep = (1/(dimG*(dimG+1)))*Gstar_ik*Eps_ijkl*G_jl     
+            Fid += abs(fidStep[0][0][0])
+            
+    return -Fid
+
