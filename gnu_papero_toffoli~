@@ -1,5 +1,5 @@
 set terminal postscript eps color enhanced
-set output 'CCZ.eps'
+set output 'toffoli.eps'
 
 #set ytics 0.25
 #set format y "%.2f"
@@ -23,7 +23,7 @@ set ylabel 'likelihoood'
 ###################################
 
 # This plots the big plot
-plot 'papero_ccz' w l lt 1 lc 3 lw 3 t ''
+plot 'papero_toffoli' w l lt 1 lc 3 lw 3 t ''
 
 # Now we set the options for the smaller plot
 set size 0.6,0.4
@@ -34,7 +34,7 @@ set ylabel "Fidelity"
 unset arrow
 
 # And finally let's plot the same set of data, but in the smaller plot
-plot 'papero_nonStoc_CCZ' using ($1):(-$2) with lines  lt 1 lc 3 lw 3 t '' 
+plot 'papero_nonStoc_toff' using ($1):(-$2) with lines  lt 1 lc 3 lw 3 t '' 
 
 # It's important to close the multiplot environment!!!
 unset multiplot

@@ -23,7 +23,7 @@ set ylabel 'likelihoood'
 ###################################
 
 # This plots the big plot
-plot 'papero_ccz' w l lt 1 lc 3 lw 3 t ''
+plot 'papero_ccz' w l t '' # lt 1 lc 3 lw 3 
 
 # Now we set the options for the smaller plot
 set size 0.4,0.3

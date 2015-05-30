@@ -9,7 +9,7 @@ set multiplot
 
 # Bigger plot options
 set size 1,1
-set title 'optimization'
+set title 'Toffoli'
 set xlabel 'steps'
 set ylabel 'likelihoood'
 
