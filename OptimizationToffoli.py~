@@ -1,15 +1,14 @@
+import sys
+sys.path.append("/afs/ipp-garching.mpg.de/home/n/nicolap/lib/python/")
 from qutip import *
 from scipy import *
 from numpy import *
 import random
 from math import log
-from pygame import mixer
 from random import randrange
 from datetime import datetime
-from tempfile import TemporaryFile
 
-
-#********** Pauli Matrices Definition (useful for save the interaction matrices) *************#
+j = complex(0,1)
 
 class PAULI (object) :
     
@@ -30,20 +29,25 @@ sy = make_pauli_matrix('Y', sigmay())
 sz = make_pauli_matrix('Z', sigmaz())
 I = make_pauli_matrix('I', qeye(2))
 
-j = complex(0,1)
-
-pauliMatr = [[sz,sz],[sx,sx],[I,sx],[sz,I]] #types of interaction
-
-
 ######################################################
 #GATE and DIMENSION
 ####################################################
 N = 5        # n of qubits
 
+print(sys.argv[1])
+
+GateMatrix = matrix([[1,0,0,0,0,0,0,0],
+                     [0,1,0,0,0,0,0,0],
+                     [0,0,1,0,0,0,0,0],
+                     [0,0,0,1,0,0,0,0],
+                     [0,0,0,0,1,0,0,0],
+                     [0,0,0,0,0,1,0,0],
+                     [0,0,0,0,0,0,1,0],
+                     [0,0,0,0,0,0,0,-1]]) #GATE ODD
+#G = Qobj(GateMatrix, dims = [[2,2,2],[2,2,2]])
 G = toffoli()
 
-interactions = [[0,1],[0,2],[1,2],[0,3],[1,3],[2,3],[0,4],[2,4],[1,4]] 	#interactions between qubits
-									#the toffoli gate acts on 0-1-2
+interactions = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4]]
 
 #######################################################################
 #USEFUL DEFINITIONS
@@ -53,11 +57,15 @@ dimG = G.shape[0]
 CareStateDim = int(log(dimG,2))
 
 h = N-CareStateDim
+
+sq1 = sys.argv[2]
+sq2 = sys.argv[3]
+
 if h > 1 :
-    dontCareStates = [sin(0.847)*basis(2,1) + cos(0.847)*basis(2,0)]*(h)
+    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]*(h)
     dontCareIdentity = [qeye(2)]*(h)
 else :
-    dontCareStates = [sin(0.847)*basis(2,1) + cos(0.847)*basis(2,0)]
+    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]
     dontCareIdentity = [qeye(2)]
 
 
@@ -67,45 +75,62 @@ dCI = tensor(dontCareIdentity)
 ###########################################################################
 #FUNCTIONS
 ###########################################################################
-
 def Likelihood(J, rho_0) : #Likelihood function
     
     Ak = G*rho_0
-    A = Ak*Ak.dag() #target state
+    #A = tensor(Ak*Ak.dag(), dCI)
+    A = Ak*Ak.dag()
     
-    rho = tensor(rho_0, dCS) 	#initial state network
-    H = Hamiltonian(J)
+    rho = tensor(rho_0, dCS)
+    H = HamiltonianAB(J)
     U = (-j*H).expm()
-    Btemp = U*rho		#unitary evolution
+    Btemp = U*rho
     Bk = Btemp*Btemp.dag()
-    B = Bk.ptrace([0,1,2])	#trace off everything but 0-1-2
+    B = Bk.ptrace([0,1,2])
     
-    out = (A*B).tr()		#inner product between target and evolved state
+    out = (A*B).tr()
 
     return abs(out)
 
 
-def Hamiltonian(x) : 	# The hamiltonian is simply the sum over all types of 2-body interactions 
+def HamiltonianAB(x) :
     
-    i = 0
     k = 0
     H = 0
+    i = 0
     
     for p in interactions :
+        for q in [sx,sz] :
         
-        temp = 0
-        
-        for S in pauliMatr :
-        
+            temp = 0
+            
             OpChain = [qeye(2)]*N
-            OpChain[p[0]] = S[0].op
-            OpChain[p[1]] = S[1].op
+            OpChain[p[0]] = q.op
+            OpChain[p[1]] = q.op
             
             temp += x[k]*tensor(OpChain)
             k += 1
-
+    
+            H += temp 
+    
+    for i in range(2) :
+    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[i] = sz.op
+        temp += x[k]*tensor(OpChain)
+        k += 1
+    
         H += temp 
-        
+
+    temp = 0
+    OpChain = [qeye(2)]*N
+    OpChain[2] = sx.op
+    temp += x[k]*tensor(OpChain)
+    k += 1
+
+    H += temp 
+
     
     return H
 
@@ -113,34 +138,34 @@ def Hamiltonian(x) : 	# The hamiltonian is simply the sum over all types of 2-bo
 #SGD
 ######################
 
-step = 0.0008
+step = sys.argv[1]/1000
 
-t = open('ToffoliOK', 'w+')
-startTime = datetime.now() 	#to measure the running time
+t = open('~/thesisproject/toffoli_optimized', 'w+')
+startTime = datetime.now()
 
-Jopt = rand(len(interactions)*len(pauliMatr))	#random initialization	
+Jopt = rand(2*len(interactions)+3)
 
 
-delta = 0.0001 #for the derivative
-
+delta = 0.0001
 check = 0
 s = 0
 time = step
 
-for i in range(3): #we hit the walker 3 times during the optimization
+
+for i in range(3):
     
     J = [x for x in Jopt]
     
-    walk = step*500*i #strength of the punch
+    walk = step*500*i
     
     while True :
         
         walk += step
         time += step
         
-        rho_0 = rand_ket(N = 8, dims = [[2,2,2], [1,1,1]]) 	#random initialization of 0-1-2
+        rho_0 = rand_ket(N = 8, dims = [[2,2,2], [1,1,1]])
+        index = randrange(len(J))
         
-	index = randrange(len(J))				#we optimize one direction (in J) at random
         JdJ = [x for x in J]
         JdJ[index] += delta
         grad = (Likelihood(JdJ, rho_0) - Likelihood(J, rho_0))/delta
@@ -153,26 +178,23 @@ for i in range(3): #we hit the walker 3 times during the optimization
         
         
         
-        if abs(s) > 0.99 :					#check if we reached the maximum = 1
+        if abs(s) > 0.99 :
             check += 1    
             if check == 20:
                 break
          
-        if time/step % 100 < 1:					#track the evolution
+        if time/step % 100 < 1:
             print(str(time/step)+ '   ' + str(s)+ '   ' + str(walk))
             
             
-        if time/step > 1600*(i+1) :				#punch the walker every 1600 steps
+        if time/step > 1600*(i+1) :
             print('HIT')
             break
     
     Jopt = J
 
-print(datetime.now()-startTime)#time
+
+print(datetime.now()-startTime)
 print(Jopt)
 t.close()
-alert.play()#alarm
-
-
-
 
