@@ -74,10 +74,10 @@ for i in range(3):
         JdJ[index] += delta
         HJ = thesisLib.H(J,N)
         HJdJ = thesisLib.H(JdJ,N)
-        grad = (thesisLib.Likelihood3(JdJ, rho_0,G,dCS,HJdJ) - thesisLib.Likelihood3(J, rho_0,G,dCS,HJ))/delta
+        grad = (thesisLib.Likelihood(JdJ, rho_0,G,dCS,HJ) - thesisLib.Likelihood(J, rho_0,G,dCS,HJdJ))/delta
         J[index] = J[index] + grad/sqrt(walk)
         HJ = thesisLib.H(J,N)
-        s = thesisLib.Likelihood3(J,rho_0,G,dCS,HJ) 
+        s = thesisLib.Likelihood(J,rho_0,G,dCS,HJ) 
         t.write(str(time/step)+'    '+str(s)+'\n')        
         
         if abs(s) > 0.99 :

@@ -14,7 +14,7 @@ j = complex(0,1)
 ######################################################
 #GATE and DIMENSION
 ####################################################
-N = 4        # n of qubits
+N = int(sys.argv[4])        # n of qubits
 
 GateMatrix = matrix([[1,0,0,0,0,0,0,0],
                      [0,1,0,0,0,0,0,0],
@@ -25,29 +25,39 @@ GateMatrix = matrix([[1,0,0,0,0,0,0,0],
                      [0,0,0,0,0,0,1,0],
                      [0,0,0,0,0,0,0,-1]]) #GATE ODD
 #G = Qobj(GateMatrix, dims = [[2,2,2],[2,2,2]])
-G = toffoli()
+G = cnot()
 
 #######################################################################
 #USEFUL DEFINITIONS
 #######################################################################
 
 dimG = G.shape[0]  
+CareStateDim = int(log(dimG,2))
+h = N-CareStateDim
 sq1 = float(sys.argv[2])
 sq2 = float(sys.argv[3])
 
-dCS = sqrt(sq1)*basis(2,1) + sqrt(sq2)*basis(2,0)
-dCS = tensor(dCS)
+if h > 1 :
+    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]*(h)
+    dontCareIdentity = [qeye(2)]*(h)
+else :
+    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]
+    dontCareIdentity = [qeye(2)]
+
+
+dCS = tensor(dontCareStates)
+dCI = tensor(dontCareIdentity)
 
 ########################
 #SGD
 ######################
 
-step = float(sys.argv[1])/10000
+step = float(sys.argv[1])/1000
 
-t = open('toffoli_optimized'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
+t = open('cnotHeis'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
 startTime = datetime.now()
 
-Jopt = rand(13)
+Jopt = rand(3*(N-1))
 
 
 delta = 0.0001
@@ -67,17 +77,17 @@ for i in range(3):
         walk += step
         time += step
         
-        rho_0 = rand_ket(N = 8, dims = [[2,2,2], [1,1,1]])
+        rho_0 = rand_ket(N = 4, dims = [[2,2], [1,1]])
         index = randrange(len(J))
         
         JdJ = [x for x in J]
         JdJ[index] += delta
-        HJ = thesisLib.H(J,N)
-        HJdJ = thesisLib.H(JdJ,N)
-        grad = (thesisLib.Likelihood3(JdJ, rho_0,G,dCS,HJdJ) - thesisLib.Likelihood3(J, rho_0,G,dCS,HJ))/delta
+        HJ = thesisLib.HchainHeis(J,N)
+        HJdJ = thesisLib.HchainHeis(JdJ,N)
+        grad = (thesisLib.Likelihood2(JdJ, rho_0,G,dCS,HJdJ) - thesisLib.Likelihood2(J, rho_0,G,dCS,HJ))/delta
         J[index] = J[index] + grad/sqrt(walk)
-        HJ = thesisLib.H(J,N)
-        s = thesisLib.Likelihood3(J,rho_0,G,dCS,HJ) 
+        HJ = thesisLib.HchainHeis(J,N)
+        s = thesisLib.Likelihood2(J,rho_0,G,dCS,HJ) 
         t.write(str(time/step)+'    '+str(s)+'\n')        
         
         if abs(s) > 0.99 :
