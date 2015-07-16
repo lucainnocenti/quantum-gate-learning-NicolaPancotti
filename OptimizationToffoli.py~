@@ -34,8 +34,6 @@ I = make_pauli_matrix('I', qeye(2))
 ####################################################
 N = 5        # n of qubits
 
-print(sys.argv[1])
-
 GateMatrix = matrix([[1,0,0,0,0,0,0,0],
                      [0,1,0,0,0,0,0,0],
                      [0,0,1,0,0,0,0,0],
@@ -48,6 +46,7 @@ GateMatrix = matrix([[1,0,0,0,0,0,0,0],
 G = toffoli()
 
 interactions = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4]]
+particles = [0,1,2,3,4]
 
 #######################################################################
 #USEFUL DEFINITIONS
@@ -58,14 +57,15 @@ CareStateDim = int(log(dimG,2))
 
 h = N-CareStateDim
 
-sq1 = sys.argv[2]
-sq2 = sys.argv[3]
+sq1 = float(sys.argv[2])
+sq2 = float(sys.argv[3])
+
 
 if h > 1 :
-    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]*(h)
+    dontCareStates = [sqrt(sq1)*basis(2,1) + sqrt(sq2)*basis(2,0)]*(h)
     dontCareIdentity = [qeye(2)]*(h)
 else :
-    dontCareStates = [sq1*basis(2,1) + sq2*basis(2,0)]
+    dontCareStates = [sqrt(sq1)*basis(2,1) + sqrt(sq2)*basis(2,0)]
     dontCareIdentity = [qeye(2)]
 
 
@@ -92,8 +92,93 @@ def Likelihood(J, rho_0) : #Likelihood function
 
     return abs(out)
 
-
 def HamiltonianAB(x) :
+    
+    k = 0
+    H = 0
+
+
+    for q in [sx,sz]:    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[0] = q.op
+        OpChain[1] = q.op
+        temp += x[k]*tensor(OpChain)
+        k+=1        
+        H += temp 
+
+    for p in [2,3,4]:
+        for q in [sx,sz]:
+            
+            temp = 0
+            OpChain = [qeye(2)]*N
+            OpChain[0] = q.op
+            OpChain[p] = q.op
+            
+            temp += x[k]*tensor(OpChain)
+            
+            OpChain = [qeye(2)]*N
+            OpChain[1] = q.op
+            OpChain[p] = q.op
+            
+            temp += x[k]*tensor(OpChain)
+            k += 1
+            
+            H += temp 
+                
+    for p in [3,4]:
+        for q in [sx,sz]:
+
+    
+            temp = 0
+            OpChain = [qeye(2)]*N
+            OpChain[2] = q.op
+            OpChain[p] = q.op
+            temp += x[k]*tensor(OpChain)
+            k+=1        
+            H += temp 
+    
+
+    for i in range(2) :
+    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[i] = sz.op
+        temp += x[k]*tensor(OpChain)
+    	H += temp 
+
+    k += 1
+    
+    temp = 0
+    OpChain = [qeye(2)]*N
+    OpChain[2] = sx.op
+    temp += x[k]*tensor(OpChain)
+
+    H += temp 
+
+    k += 1
+
+    for i in [3,4] :
+    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[i] = sx.op
+        temp += x[k]*tensor(OpChain)
+	k += 1    	
+
+	OpChain = [qeye(2)]*N
+        OpChain[i] = sz.op
+        temp += x[k]*tensor(OpChain)#last one
+	k += 1
+
+       	H += temp 
+
+    
+    return H
+
+
+
+def Hamiltonian(x) :
     
     k = 0
     H = 0
@@ -127,7 +212,6 @@ def HamiltonianAB(x) :
     OpChain = [qeye(2)]*N
     OpChain[2] = sx.op
     temp += x[k]*tensor(OpChain)
-    k += 1
 
     H += temp 
 
@@ -138,12 +222,12 @@ def HamiltonianAB(x) :
 #SGD
 ######################
 
-step = sys.argv[1]/1000
+step = float(sys.argv[1])/10000
 
-t = open('~/thesisproject/toffoli_optimized', 'w+')
+t = open('toffoli_optimized'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
 startTime = datetime.now()
 
-Jopt = rand(2*len(interactions)+3)
+Jopt = rand(17)
 
 
 delta = 0.0001
