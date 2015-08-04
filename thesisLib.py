@@ -35,6 +35,60 @@ def Likelihood3(J, rho_0, G, dCS, H) : #Likelihood function
 
 
 
+def Hfred(x,N) :
+    k = 0
+    H = 0
+    sx = sigmax()
+    sy = sigmay()
+    sz = sigmaz()
+    for q in [sx,sy,sz]:    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[2] = q
+        OpChain[1] = q
+        temp += x[k]*tensor(OpChain)
+        k+=1        
+        H += temp 
+    for p in [0,3]:
+        for q in [sx,sz]:
+            temp = 0
+            OpChain = [qeye(2)]*N
+            OpChain[2] = q
+            OpChain[p] = q
+            temp += x[k]*tensor(OpChain)
+            OpChain = [qeye(2)]*N
+            OpChain[1] = q
+            OpChain[p] = q
+            temp += x[k]*tensor(OpChain)
+            k += 1
+            H += temp 
+    for q in [sx,sz]:
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[0] = q
+        OpChain[3] = q
+        temp += x[k]*tensor(OpChain)
+        k+=1        
+        H += temp 
+    for i in range(4) :
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[i] = sz
+        temp += x[k]*tensor(OpChain)
+        H += temp 
+        k += 1
+    
+    temp = 0
+    OpChain = [qeye(2)]*N
+    OpChain[3] = sx
+    temp += x[k]*tensor(OpChain)#last one
+
+    H += temp 
+
+    
+    return H
+
+
 def H(x,N) :
     k = 0
     H = 0
