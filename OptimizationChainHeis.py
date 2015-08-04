@@ -15,16 +15,6 @@ j = complex(0,1)
 #GATE and DIMENSION
 ####################################################
 N = int(sys.argv[4])        # n of qubits
-
-GateMatrix = matrix([[1,0,0,0,0,0,0,0],
-                     [0,1,0,0,0,0,0,0],
-                     [0,0,1,0,0,0,0,0],
-                     [0,0,0,1,0,0,0,0],
-                     [0,0,0,0,1,0,0,0],
-                     [0,0,0,0,0,1,0,0],
-                     [0,0,0,0,0,0,1,0],
-                     [0,0,0,0,0,0,0,-1]]) #GATE ODD
-#G = Qobj(GateMatrix, dims = [[2,2,2],[2,2,2]])
 G = cnot()
 
 #######################################################################
@@ -52,12 +42,12 @@ dCI = tensor(dontCareIdentity)
 #SGD
 ######################
 
-step = float(sys.argv[1])/1000
+step = float(sys.argv[1])/10000
 
-t = open('cnotHeis'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
+t = open('chainOut/cnotHeis'+str(step)+'coef'+str(sq1)+str(sq2)+'N'+str(N), 'w+')
 startTime = datetime.now()
 
-Jopt = rand(3*(N-1))
+Jopt = rand(3*(2*N-1))
 
 
 delta = 0.0001
@@ -95,12 +85,12 @@ for i in range(3):
             if check == 20:
                 break
          
-        if time/step % 100 < 1:
-            print(str(time/step)+ '   ' + str(s)+ '   ' + str(walk))
+        #if time/step % 100 < 1:
+         #   print(str(time/step)+ '   ' + str(s)+ '   ' + str(walk))
             
             
         if time/step > 1600*(i+1) :
-            print('HIT')
+            #print('HIT')
             break
     
     Jopt = J

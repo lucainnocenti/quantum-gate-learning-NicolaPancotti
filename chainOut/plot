@@ -1,0 +1,3 @@
+set term pdf
+set output 'out50.pdf'
+plot 'cnotHeis0.050coef0.50.5N7' w l

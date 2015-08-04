@@ -3,32 +3,25 @@ def Likelihood2(J, rho_0, G, dCS, H) : #Likelihood function
     
     j = complex(0,1)
     Ak = G*rho_0
-    #A = tensor(Ak*Ak.dag(), dCI)
     A = Ak*Ak.dag()
-    
     rho = tensor(rho_0, dCS)
     U = (-j*H).expm()
     Btemp = U*rho
     Bk = Btemp*Btemp.dag()
     B = Bk.ptrace([0,1])
-    
     out = (A*B).tr()
 
     return abs(out)
 
 def Likelihood3(J, rho_0, G, dCS, H) : #Likelihood function
-    
     j = complex(0,1)
     Ak = G*rho_0
-    #A = tensor(Ak*Ak.dag(), dCI)
     A = Ak*Ak.dag()
-    
     rho = tensor(rho_0, dCS)
     U = (-j*H).expm()
     Btemp = U*rho
     Bk = Btemp*Btemp.dag()
     B = Bk.ptrace([0,1,2])
-    
     out = (A*B).tr()
 
     return abs(out)
@@ -81,7 +74,6 @@ def H(x,N) :
     OpChain = [qeye(2)]*N
     OpChain[3] = sx
     temp += x[k]*tensor(OpChain)#last one
-
     H += temp 
 
     
@@ -95,9 +87,9 @@ def HchainHeis(x,N) :
     sx = sigmax()
     sz = sigmaz()
     sy = sigmay()
+
     for p in range(1,N-1) :
         for q in [sx,sy,sz] :
-        
             temp = 0
             OpChain = [qeye(2)]*N
             OpChain[p] = q
@@ -105,21 +97,26 @@ def HchainHeis(x,N) :
             
             temp += x[k]*tensor(OpChain)
             k += 1
-    
             H += temp 
-        
     for q in [sx,sy,sz] :
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[0] = q
+        OpChain[N-1] = q
         
+        temp += x[k]*tensor(OpChain)
+        k += 1
+        H += temp 
+    for i in range(N):
+        for q in [sx,sy,sz] :
             temp = 0
             OpChain = [qeye(2)]*N
-            OpChain[0] = q
-            OpChain[N-1] = q
-            
+            OpChain[i] = q
             temp += x[k]*tensor(OpChain)
             k += 1
-    
-            H += temp 
-        
+            H += temp
+
+            
     
     return H
 
