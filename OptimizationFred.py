@@ -15,18 +15,8 @@ j = complex(0,1)
 #GATE and DIMENSION
 ####################################################
 N = 4        # n of qubits
-
-GateMatrix = matrix([[1,0,0,0,0,0,0,0],
-                     [0,1,0,0,0,0,0,0],
-                     [0,0,1,0,0,0,0,0],
-                     [0,0,0,1,0,0,0,0],
-                     [0,0,0,0,1,0,0,0],
-                     [0,0,0,0,0,1,0,0],
-                     [0,0,0,0,0,0,1,0],
-                     [0,0,0,0,0,0,0,-1]]) #GATE ODD
-#G = Qobj(GateMatrix, dims = [[2,2,2],[2,2,2]])
-#G = toffoli()
 G = fredkin()
+
 #######################################################################
 #USEFUL DEFINITIONS
 #######################################################################
@@ -44,14 +34,15 @@ dCS = tensor(dCS)
 
 step = float(sys.argv[1])/10000
 
-t = open('fredkin'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
+t = open('outputFred55/fred_optimized'+str(step)+'coef'+str(sq1)+str(sq2), 
+'w+')
 startTime = datetime.now()
 
 Jopt = rand(14)
 
 
 delta = 0.0001
-fcheck = 0
+check = 0
 s = 0
 time = step
 
@@ -85,16 +76,18 @@ for i in range(3):
             if check == 20:
                 break
          
-        if time/step % 100 < 1:
-            print(str(time/step)+ '   ' + str(s)+ '   ' + str(walk))
+#        if time/step % 100 < 1:
+#            print(str(time/step)+ '   ' + str(s)+ '   ' + str(walk))
             
             
         if time/step > 1600*(i+1) :
-            print('HIT')
+#            print('HIT')
             break
     
     Jopt = J
 
+t.write('#'+str(Jopt)+'\n')        
+t.write('#'+str(datetime.now()-startTime)+'\n')        
 
 print(datetime.now()-startTime)
 print(Jopt)
