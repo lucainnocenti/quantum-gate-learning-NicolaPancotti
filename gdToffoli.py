@@ -1,0 +1,267 @@
+import sys
+sys.path.append("/afs/ipp-garching.mpg.de/home/n/nicolap/lib/python/")
+from qutip import *
+from scipy import *
+from numpy import *
+import random
+from math import log
+from random import randrange
+from datetime import datetime
+
+j = complex(0,1)
+
+class PAULI (object) :
+    
+    name = ''
+    op = Qobj()
+    
+    def __init__(self, name, PauliMatrix) :
+        self.name = name
+        self.op = PauliMatrix
+    
+def make_pauli_matrix (name, PauliMatrix) :
+    Pmatrix = PAULI (name, PauliMatrix)
+    return Pmatrix
+
+ 
+sx = make_pauli_matrix('X', sigmax())
+sy = make_pauli_matrix('Y', sigmay())
+sz = make_pauli_matrix('Z', sigmaz())
+I = make_pauli_matrix('I', qeye(2))
+
+######################################################
+#GATE and DIMENSION
+####################################################
+N = 5        # n of qubits
+
+GateMatrix = matrix([[1,0,0,0,0,0,0,0],
+                     [0,1,0,0,0,0,0,0],
+                     [0,0,1,0,0,0,0,0],
+                     [0,0,0,1,0,0,0,0],
+                     [0,0,0,0,1,0,0,0],
+                     [0,0,0,0,0,1,0,0],
+                     [0,0,0,0,0,0,1,0],
+                     [0,0,0,0,0,0,0,-1]]) #GATE ODD
+#G = Qobj(GateMatrix, dims = [[2,2,2],[2,2,2]])
+G = toffoli()
+
+interactions = [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4]]
+
+
+#######################################################################
+#USEFUL DEFINITIONS
+#######################################################################
+
+dimG = G.shape[0]  
+CareStateDim = int(log(dimG,2))
+
+h = N-CareStateDim
+
+sq1 = float(sys.argv[1])
+sq2 = float(sys.argv[2])
+
+
+if h > 1 :
+    dontCareStates = [sqrt(sq1)*basis(2,1) + sqrt(sq2)*basis(2,0)]*(h)
+    dontCareIdentity = [qeye(2)]*(h)
+else :
+    dontCareStates = [sqrt(sq1)*basis(2,1) + sqrt(sq2)*basis(2,0)]
+    dontCareIdentity = [qeye(2)]
+
+
+dCS = tensor(dontCareStates)
+dCI = tensor(dontCareIdentity)
+
+###########################################################################
+#FUNCTIONS
+###########################################################################
+
+def HamiltonianAB(x) :
+    
+    k = 0
+    H = 0
+
+
+    for q in [sx,sz]:    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[0] = q.op
+        OpChain[1] = q.op
+        temp += x[k]*tensor(OpChain)
+        k+=1        
+        H += temp 
+
+    for p in [2,3,4]:
+        for q in [sx,sz]:
+            
+            temp = 0
+            OpChain = [qeye(2)]*N
+            OpChain[0] = q.op
+            OpChain[p] = q.op
+            
+            temp += x[k]*tensor(OpChain)
+            
+            OpChain = [qeye(2)]*N
+            OpChain[1] = q.op
+            OpChain[p] = q.op
+            
+            temp += x[k]*tensor(OpChain)
+            k += 1
+            
+            H += temp 
+                
+    for p in [3,4]:
+        for q in [sx,sz]:
+
+    
+            temp = 0
+            OpChain = [qeye(2)]*N
+            OpChain[2] = q.op
+            OpChain[p] = q.op
+            temp += x[k]*tensor(OpChain)
+            k+=1        
+            H += temp 
+    
+
+    for i in range(2) :
+    
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[i] = sz.op
+        temp += x[k]*tensor(OpChain)
+    
+        H += temp 
+
+    k += 1
+    temp = 0
+    OpChain = [qeye(2)]*N
+    OpChain[2] = sx.op
+    temp += x[k]*tensor(OpChain)#last one
+
+    H += temp 
+
+    
+    return H
+
+
+
+###########################################
+##Functions to implement the Fidelity
+###########################################
+
+def getGate (G): #extract non zero elements of the gate and save them in s
+    
+    s = []
+
+    rows = G.shape[0]
+    colums = G.shape[1]
+    
+    for i in range(rows):
+        for j in range(colums):
+            if G[i][0][j] != 0 :
+                s.append([i,j])
+    return s
+
+def get_bin(a):  #binary representation of a number a: useful to write the computational basis 
+    
+    s = bin(a)[2:]
+    l = len(s)
+    if l < 4 :
+        r = '0'*(4-l)
+        s = r + s
+        
+    return s
+
+def getBasis (a) : #get the basis states according to the binary of a: 10 -> |10>
+    
+    if a == 0:
+          B = [basis(2,0)]*(CareStateDim)
+          return tensor(B)
+    
+    c = get_bin(a)
+    if dimG == 16:
+        return tensor(basis(2,int(c[0])) , basis(2,int(c[1])), basis(2,int(c[2])), basis(2,int(c[3])))
+    if dimG == 8:
+        return tensor(basis(2,int(c[0])) , basis(2,int(c[1])), basis(2,int(c[2])))
+    if dimG == 4:
+        return tensor(basis(2,int(c[1])) , basis(2,int(c[2])))
+    
+def Fidelity (J):  #Fidelity function
+    
+    s = getGate(G)
+    H = HamiltonianAB(J)
+    Fid = 1/(dimG + 1)
+    U = (-j*H).expm()
+    Udag = (j*H).expm()
+    
+    for x in s :
+        for y in s:
+            
+            #definition of the basis kets and bras.             
+            bra_i = getBasis(x[0]).dag()
+            ket_j = getBasis(y[0])
+            ket_k = getBasis(x[1])
+            bra_l = getBasis(y[1]).dag()
+            
+            Epsilon = U*tensor(ket_k*bra_l, dCS*dCS.dag())*Udag
+            Eps_ijkl = bra_i*(Epsilon.ptrace([0,1,2]))*ket_j
+            
+            Gstar_ik = G[x[0],x[1]].conjugate()
+            G_jl = G[y[0],y[1]]
+            
+            
+            fidStep = (1/(dimG*(dimG+1)))*Gstar_ik*Eps_ijkl*G_jl     
+            Fid += fidStep[0][0][0]
+            
+    return -abs(Fid)
+
+def LocGradient(J,s) :
+    
+    dL = []
+    delta = 0.0001
+    for h in range(len(J)) :
+        JdJ = [x for x in J]
+        JdJ[h] += delta
+        FdJ = Fidelity(JdJ)
+        dL.append((FdJ - s)/delta)
+    
+    return dL, FdJ
+
+def GradDesc(Jopt) :
+    
+    J = [x for x in Jopt]
+    check = 0
+    s = 1
+    i = 16
+    g = 0
+    s = Fidelity(J)
+    print(s)
+    while True :   
+        
+        g = s
+        grad, s = LocGradient(J,s)
+        J = [J[k] - grad[k]/sqrt(i) for k in range(len(J))]
+    
+        s = Fidelity(J) 
+        t.write(str(i)+'    '+str(s)+'\n')
+        
+
+        print(s)
+        
+        if abs(s-g) < 0.00005 :
+            check += 1    
+            if check == 20:
+                break
+        
+        i += 0.5
+       
+    return J
+
+t = open('nonStochasticToffoli', 'w+')
+Jini = [-2.1479024623001721, -3.5696913640568502, 5.6651149839421278, 0.030836447833296022, -1.5716139908102669, 0.027981066837721006,7.59049451705551, -5.3492355650473287e-05, 0.14261283019750687, 2.6283250936391274, -0.52509833523801053, -5.43356471463778e-05,-3.7160159940993296, -1.1483217005766562]
+
+startTime = datetime.now()
+J2 = GradDesc(Jini)
+print(datetime.now()-startTime)
+print(J2)
+t.close()
