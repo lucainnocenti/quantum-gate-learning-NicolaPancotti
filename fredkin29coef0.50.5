@@ -1,0 +1,49 @@
+#!/bin/sh
+##################################################################
+#
+# Change to the current working directory upon starting of the job
+#$ -cwd
+#
+# join the error and standard output streams
+#$ -j n
+#
+# this is my e-mail address
+#$ -M nicolap@mpq.mpg.de
+#
+# notify me about pending SIG_STOP and SIG_KILL
+#$ -notify
+#
+# send e-mail at the end of the job
+#$ -m e
+#
+# name of the job
+#$ -N fredkin29coef0.50.5
+#
+# output stream
+#$ -o /afs/ipp-garching.mpg.de/home/n/nicolap/jobs/amd64_sles11/fredkin29coef0.50.5.log
+#
+# error stream
+#$ -e /afs/ipp-garching.mpg.de/home/n/nicolap/jobs/amd64_sles11/fredkin29coef0.50.5.err
+#
+###################################################################
+echo "Job fredkin29coef0.50.5:"
+echo "  submitted at Tue Aug  4 16:23:01 CEST 2015"
+echo "  running on `hostname` as `whoami`"
+echo "---------------------------------------------------------"
+
+unset DISPLAY
+export PATH=/afs/rzg/.cs/git/@sys/1.8.4/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/cython/0.20.2/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/setuptools/16.0/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/sympy/0.7.6/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/ipython/2.1.0/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/numpy/1.9.1-openblas-omp/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/nose/1.3.4/bin:/afs/ipp/.cs/python_modules/amd64_sles11/python33/python/3.3.6/bin:/afs/@cell/common/soft/math/math.10.2.0/Linux/scripts:/afs/ipp/common/soft/matlab_2014a/bin:/afs/@cell/common/soft/intel/ics2013/14.0/bin/intel64/bin:/afs/@cell/common/soft/intel/ics2013/14.0/bin/intel64:/opt/SGE6/bin/lx-amd64:/afs/ipp-garching.mpg.de/home/n/nicolap/bin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/X11R6/bin:/usr/games:/usr/lib/mit/bin:/usr/lib/mit/sbin:/afs/ipp/amd64_sles11/bin:/afs/ipp/home/n/nicolap/bin/amd64_sles11/:/afs/ipp-garching.mpg.de/home/n/nicolap/thesisproject;
+export LD_LIBRARY_PATH=/afs/@cell/common/soft/intel/ics2013/14.0/compiler/lib/intel64:/lib/intel64:/afs/ipp/common/soft/gsl/1.14/amd64_sles11/lib;
+export SYS=amd64_sles11;
+export AFSHOME=;
+export VM_TMPDIR=;
+export LOCALTMP=;
+export SHAREDTMP=;
+export JOBNAME=;
+export MATLABVERSION=;
+
+cd /afs/ipp-garching.mpg.de/home/n/nicolap/thesisproject
+ python OptimizationFred.py 29 0.5 0.5
+
+# end of job script
+###################################################################

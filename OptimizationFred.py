@@ -34,11 +34,10 @@ dCS = tensor(dCS)
 
 step = float(sys.argv[1])/10000
 
-t = open('outputFred55/fred_optimized'+str(step)+'coef'+str(sq1)+str(sq2), 
-'w+')
+t = open('outputFred55/fred_optimized'+str(step)+'coef'+str(sq1)+str(sq2), 'w+')
 startTime = datetime.now()
 
-Jopt = rand(14)
+Jopt = rand(12)
 
 
 delta = 0.0001
