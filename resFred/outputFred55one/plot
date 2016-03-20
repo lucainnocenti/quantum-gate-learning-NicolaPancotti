@@ -1,0 +1,3 @@
+set term pdf
+set output 'out99.pdf'
+plot 'fred_optimized0.0099coef0.50.5' w l

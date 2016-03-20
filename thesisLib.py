@@ -42,28 +42,28 @@ def Hfred(x,N) :
         temp += x[k]*tensor(OpChain)
         k+=1        
         H += temp 
-    for p in [0,3]:
-        for q in [sx,sz]:
-            temp = 0
-            OpChain = [qeye(2)]*N
-            OpChain[2] = q
-            OpChain[p] = q
-            temp += x[k]*tensor(OpChain)
-            OpChain = [qeye(2)]*N
-            OpChain[1] = q
-            OpChain[p] = q
-            temp += x[k]*tensor(OpChain)
-            k += 1
-            H += temp 
+    
     for q in [sx,sz]:
         temp = 0
         OpChain = [qeye(2)]*N
+        OpChain[2] = q
         OpChain[0] = q
-        OpChain[3] = q
+        temp += x[k]*tensor(OpChain)
+        OpChain = [qeye(2)]*N
+        OpChain[1] = q
+        OpChain[0] = q
+        temp += x[k]*tensor(OpChain)
+        k += 1
+        H += temp 
+    for q in [0,1,2]:
+        temp = 0
+        OpChain = [qeye(2)]*N
+        OpChain[q] = sx
+        OpChain[3] = sx
         temp += x[k]*tensor(OpChain)
         k+=1        
         H += temp 
-    for i in range(4) :
+    for i in range(3) :
         temp = 0
         OpChain = [qeye(2)]*N
         OpChain[i] = sz
